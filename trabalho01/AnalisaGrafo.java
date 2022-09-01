@@ -4,8 +4,19 @@
 package trabalho01;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class AnalisaGrafo {
+
+    /*
+    * Partindo do principio = nomes dos vertices = 1, 2, 3,...
+    *
+    *             1  2
+    *           1{0, 1}
+    *           2{1, 0}
+     */
+
     private boolean ehDirigido = false;
 
     public String tipoDoGrafo(int[][] matrizAdjacencia) {
@@ -44,8 +55,8 @@ public class AnalisaGrafo {
                     // verificando completo
                     if (contNulo == 1 && this.verifNulo(contNulo, numElementos)) { // cobre o caso do K1, unico nulo completo
                         ehCompleto = true;
-                    } else {
-
+                    } else if (this.verifCompleto(matrizAdjacencia, i, j)) {
+                        ehCompleto = true;
                     }
                 } else {
                     if (temLoop) {
@@ -98,6 +109,10 @@ public class AnalisaGrafo {
         return contNulo == numElementos;
     }
 
+    private boolean verifCompleto(int[][] matrizAdjacente, int i, int j) {
+        return matrizAdjacente[i][j] > 0 && matrizAdjacente[j][i] > 0;
+    }
+
     private String arrumaMsg(String msg) {
         int ultimoHifenIndex = msg.length() - 2;
         return msg.substring(0, ultimoHifenIndex - 1);
@@ -115,6 +130,7 @@ public class AnalisaGrafo {
 
     public String arestasDoGrafo(int[][] matrizAdjacencia) {
         String msg = "";
+        ArrayList<String[]> conexoes = new ArrayList<String[]>();
         int somaArestas = 0;
         int numArestas = 0;
 
@@ -127,13 +143,22 @@ public class AnalisaGrafo {
                 }
 
                 // conexoes
-
+                if (matrizAdjacencia[i][j] > 0 && matrizAdjacencia[j][i] > 0) {
+                    String[] arestas = { Arrays.toString(matrizAdjacencia[i]) + " -> " + Arrays.toString(matrizAdjacencia[j]) };
+                    conexoes.add(arestas);
+                }
             }
         }
         if (!ehDirigido) numArestas = somaArestas / 2; else numArestas = somaArestas;
 
         if (numArestas > 0) {
             msg += "Numero de arestas existentes no grafo: " + numArestas;
+            msg += "\nArestas: ";
+
+            for (String[] arestas : conexoes) {
+                msg += Arrays.toString(arestas) + " - ";
+            }
+            msg = this.arrumaMsg(msg);
         } else {
             msg += "Este grafo nao possui arestas.";
         }
