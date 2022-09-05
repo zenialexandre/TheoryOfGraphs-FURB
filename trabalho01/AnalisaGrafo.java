@@ -9,14 +9,6 @@ import java.util.Arrays;
 
 public class AnalisaGrafo {
 
-    /*
-    * Partindo do principio = nomes dos vertices = 1, 2, 3,...
-    *
-    *             1  2
-    *           1{0, 1}
-    *           2{1, 0}
-     */
-
     private boolean ehDirigido = false;
 
     public String tipoDoGrafo(int[][] matrizAdjacencia) {
@@ -137,15 +129,17 @@ public class AnalisaGrafo {
         // solucao p/ nao dirigidos e dirigidos (quantidade de arestas)
         for (int i = 0; i < matrizAdjacencia.length; i++) {
             for (int j = 0; j < matrizAdjacencia.length; j++) {
-                // contando as arestas
                 if (matrizAdjacencia[i][j] > 0) {
+                    //contando as arestas
                     somaArestas += matrizAdjacencia[i][j];
-                }
 
-                // conexoes
-                if (matrizAdjacencia[i][j] > 0 && matrizAdjacencia[j][i] > 0) {
-                    String[] arestas = { Arrays.toString(matrizAdjacencia[i]) + " -> " + Arrays.toString(matrizAdjacencia[j]) };
+                    //conexoes
+                    i++;
+                    j++;
+                    String[] arestas = { i + ", " + j };
                     conexoes.add(arestas);
+                    i--;
+                    j--;
                 }
             }
         }
@@ -156,7 +150,7 @@ public class AnalisaGrafo {
             msg += "\nArestas: ";
 
             for (String[] arestas : conexoes) {
-                msg += Arrays.toString(arestas) + " - ";
+                msg += "{" + Arrays.toString(arestas) + "} , ";
             }
             msg = this.arrumaMsg(msg);
         } else {
@@ -172,10 +166,10 @@ public class AnalisaGrafo {
     public static void main(String[] args) {
         AnalisaGrafo obj = new AnalisaGrafo();
         int[][] matrizAdjacencia = {
-                {0, 1, 1, 1},
-                {1, 0, 1, 1},
-                {1, 1, 0, 1},
-                {1, 1, 1, 0}
+                {0, 1, 1, 0},
+                {1, 0, 0, 1},
+                {1, 0, 0, 1},
+                {0, 1, 1, 0}
         };
 
         System.out.println(obj.tipoDoGrafo(matrizAdjacencia));
