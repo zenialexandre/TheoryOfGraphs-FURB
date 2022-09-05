@@ -6,9 +6,11 @@ package trabalho01;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class AnalisaGrafo {
-
+// verificacao p/ completo e bipartido ainda nao estao 100%
     private boolean ehDirigido = false;
 
     public String tipoDoGrafo(int[][] matrizAdjacencia) {
@@ -121,8 +123,8 @@ public class AnalisaGrafo {
     }
 
     public String arestasDoGrafo(int[][] matrizAdjacencia) {
-        String msg = "";
-        ArrayList<String[]> conexoes = new ArrayList<String[]>();
+        String msg = "\n";
+        ArrayList<String[]> conexoes = new ArrayList<>();
         int somaArestas = 0;
         int numArestas = 0;
 
@@ -147,7 +149,7 @@ public class AnalisaGrafo {
 
         if (numArestas > 0) {
             msg += "Numero de arestas existentes no grafo: " + numArestas;
-            msg += "\nArestas: ";
+            msg += "\nConjunto de arestas: ";
 
             for (String[] arestas : conexoes) {
                 msg += "{" + Arrays.toString(arestas) + "} , ";
@@ -159,20 +161,48 @@ public class AnalisaGrafo {
         return msg;
     }
 
+    //p/ descobrir o grau -> conta aparicoes / 2 = grau
     public String grausDoVertice(int[][] matrizAdjacencia) {
-        return "";
+        List<Integer> freqArestas = new ArrayList<>();
+        List<Integer> seqGraus = new ArrayList<>();
+        String introducaoMsg = "\nListagem de graus de cada vertice:\n";
+        String grausMsg = "";
+        String sequenciaMsg = "";
+
+        // graus de cada vertice
+        if (ehDirigido) {
+
+        } else {
+            for (int i = 0; i < matrizAdjacencia.length; i++) {
+                for (int j = 0; j < matrizAdjacencia.length; j++) {
+                    if (matrizAdjacencia[i][j] > 0) {
+                        i++;
+                        freqArestas.add(i);
+                        i--;
+                    }
+                }
+            }
+
+            for (int k = 0; k < matrizAdjacencia.length + 1; k++) {
+                grausMsg += k + " -> " + Collections.frequency(freqArestas, k) + "\n";
+                seqGraus.add(Collections.frequency(freqArestas, k));
+            }
+        }
+        seqGraus.remove(0);
+        Collections.sort(seqGraus);
+        return introducaoMsg + grausMsg.substring(7, grausMsg.length() - 1) + "\n\nSequencia de graus: " + seqGraus;
     }
 
     public static void main(String[] args) {
         AnalisaGrafo obj = new AnalisaGrafo();
         int[][] matrizAdjacencia = {
-                {0, 1, 1, 0},
-                {1, 0, 0, 1},
-                {1, 0, 0, 1},
-                {0, 1, 1, 0}
+                {0, 1, 1},
+                {1, 0, 0},
+                {1, 0, 0}
         };
 
         System.out.println(obj.tipoDoGrafo(matrizAdjacencia));
         System.out.println(obj.arestasDoGrafo(matrizAdjacencia));
+        System.out.println(obj.grausDoVertice(matrizAdjacencia));
     }
 }
