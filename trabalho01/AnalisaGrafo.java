@@ -4,13 +4,10 @@
 package trabalho01;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class AnalisaGrafo {
-// regular, sequencia de graus só numeros iguais
+
     private boolean ehDirigido = false;
 
     public String tipoDoGrafo(int[][] matrizAdjacencia) {
@@ -26,7 +23,7 @@ public class AnalisaGrafo {
 
 
         for (int i = 0; i < matrizAdjacencia.length; i++) {
-            for (int j = 0; j < matrizAdjacencia.length; j++) {
+            for (int j = 0; j < matrizAdjacencia[0].length; j++) {
                 // verficando grafo nulo
                 if (matrizAdjacencia[i][j] == 0) {
                     contNulo++;
@@ -47,40 +44,98 @@ public class AnalisaGrafo {
                 if (!ehMultigrafo) {
                     if (contNulo == 1 && this.verifNulo(contNulo, numElementos)) { // cobre o caso do K1, unico nulo completo
                         ehCompleto = true;
-                    } else if (this.verifCompleto(matrizAdjacencia)) {
-                        ehCompleto = true;
                     }
                 }
-
-                // verificando bipartido
-                if (matrizAdjacencia[0].length % 2 == 0) ehBipartido = true;
 
                 // verificando regular
                 if (this.verifRegular(matrizAdjacencia)) ehRegular = true;
             }
         }
+        // verificando bipartido
+        if ((!ehMultigrafo || ehMultigrafo && !temLoop) && !ehDirigido && !this.verifNulo(contNulo, numElementos)) {
+            if (this.verifBipartido(matrizAdjacencia)) ehBipartido = true;
+        }
+
+        // verificando completo
+        if (!ehMultigrafo && !ehDirigido && !this.verifNulo(contNulo, numElementos)) {
+            if (this.verifCompleto(matrizAdjacencia)) ehCompleto = true;
+        }
 
         // montando a mensagem baseado nas afirmacoes
-
         if (this.verifNulo(contNulo, numElementos)) msg += "Nulo - ";
-
-        if (ehMultigrafo) {
-            msg += "Multigrafo - ";
-        } else if (!ehMultigrafo) {
-            msg += "Simples - ";
-        }
-
-        if (ehDirigido) {
-            msg += "Dirigido - ";
-        } else {
-            msg += "Nao-Dirigido - ";
-        }
-
+        if (ehMultigrafo) msg += "Multigrafo - "; else if (!ehMultigrafo) msg += "Simples - ";
+        if (ehDirigido) msg += "Dirigido - "; else msg += "Nao-Dirigido - ";
         if (ehCompleto) msg += "Completo - ";
         if (ehBipartido) msg += "Bipartido - ";
         if (ehRegular) msg += "Regular - ";
 
         return this.arrumaMsg(msg);
+    }
+
+    public String arestasDoGrafo(int[][] matrizAdjacencia) {
+        String msg = "\n";
+        ArrayList<String[]> conexoes = new ArrayList<>();
+        int somaArestas = 0;
+        int numArestas = 0;
+
+        for (int i = 0; i < matrizAdjacencia.length; i++) {
+            for (int j = 0; j < matrizAdjacencia[0].length; j++) {
+                if (matrizAdjacencia[i][j] > 0) {
+                    //contando as arestas
+                    somaArestas += matrizAdjacencia[i][j];
+
+                    //conexoes
+                    i++;
+                    j++;
+                    String[] arestas = { "v" + i + ", v" + j };
+                    conexoes.add(arestas);
+                    i--;
+                    j--;
+                }
+            }
+        }
+
+        if (!ehDirigido) numArestas = somaArestas / 2; else numArestas = somaArestas;
+        if (numArestas > 0) {
+            msg += "Numero de arestas existentes no grafo: " + numArestas;
+            msg += "\nConjunto de arestas: ";
+
+            for (String[] arestas : conexoes) {
+                msg += "{" + Arrays.toString(arestas) + "} , ";
+            }
+            msg = this.arrumaMsg(msg);
+        } else {
+            msg += "Este grafo nao possui arestas.";
+        }
+        return msg;
+    }
+
+    public String grausDoVertice(int[][] matrizAdjacencia) {
+        List<Integer> freqArestas = this.getFrequenciaArestas(matrizAdjacencia);
+        List<Integer> seqGraus = this.getSequenciaDeGrausNaoDirigido(matrizAdjacencia);
+        String msg = "\nListagem de graus de cada vertice:\n";
+        String grausMsg = "";
+
+        if (ehDirigido) { // entradas = linhas / saidas = colunas
+            List<Integer> seqGrausDirigido = new ArrayList<>();
+            int[] somaEntradasSaidas = this.getSequenciaDeGrausDirigido(matrizAdjacencia);
+            for (int k = 0; k < somaEntradasSaidas.length; k++) {
+                k++;
+                grausMsg += "v" + k + " -> ";
+                k--;
+                grausMsg += somaEntradasSaidas[k] + "\n";
+                seqGrausDirigido.add(somaEntradasSaidas[k]);
+            }
+            Collections.sort(seqGrausDirigido);
+            msg += grausMsg + "\nSequencia de graus: " + seqGrausDirigido;
+
+        } else {
+            for (int k = 0; k < matrizAdjacencia.length + 1; k++) {
+                grausMsg += "v" + k + " -> " + Collections.frequency(freqArestas, k) + "\n";
+            }
+            msg += grausMsg.substring(7, grausMsg.length() - 1) + "\n\nSequencia de graus: " + seqGraus;
+        }
+        return msg;
     }
 
     private boolean verifSimetria(int[][] matrizAdjacencia, int i, int j) {
@@ -94,8 +149,8 @@ public class AnalisaGrafo {
     private boolean verifCompleto(int[][] matrizAdjacencia) {
         int vertices = matrizAdjacencia[0].length;
 
-        for (int grau : this.getSequenciaDeGraus(matrizAdjacencia)) { // verificando se cada grau da sequencia eh igual a numVertices - 1
-           if (grau == vertices - 1) return true;
+        for (int grau : this.getSequenciaDeGrausNaoDirigido(matrizAdjacencia)) { // verificando se cada grau da sequencia eh igual a numVertices - 1
+            if (grau == vertices - 1) return true;
         }
         return false;
     }
@@ -103,10 +158,35 @@ public class AnalisaGrafo {
     private boolean verifRegular(int[][] matrizAdjacencia) {
         int contFrequencia = 0;
 
-        for (int grau : this.getSequenciaDeGraus(matrizAdjacencia)) {
-            contFrequencia = Collections.frequency(this.getSequenciaDeGraus(matrizAdjacencia), grau);
+        if (!ehDirigido) {
+            for (int grau : this.getSequenciaDeGrausNaoDirigido(matrizAdjacencia)) {
+                contFrequencia = Collections.frequency(this.getSequenciaDeGrausNaoDirigido(matrizAdjacencia), grau);
+            }
+        } else {
+            for (int grau : this.getSequenciaDeGrausDirigido(matrizAdjacencia)) {
+                contFrequencia = Collections.frequency(this.getSeqGrausDirigidoComoList(this.getSequenciaDeGrausDirigido(matrizAdjacencia)), grau);
+            }
         }
-        return contFrequencia == this.getSequenciaDeGraus(matrizAdjacencia).size();
+        return contFrequencia == this.getSequenciaDeGrausNaoDirigido(matrizAdjacencia).size();
+    }
+
+    private boolean verifBipartido(int[][] matrizAdjacencia) {
+        boolean retorno = false;
+        ArrayList<Integer> conjunto1 = new ArrayList<>();
+        ArrayList<Integer> conjunto2 = new ArrayList<>();
+
+        for (int i = 0; i < matrizAdjacencia.length; i++) {
+            for (int j = 0; j < matrizAdjacencia[0].length; j++) {
+                if (i < j) { // pega a parte debaixo da diagonal principal
+                    if (matrizAdjacencia[i][j] > 0) {
+                        conjunto1.add(i);
+                        conjunto2.add(j);
+                    }
+                }
+            }
+        }
+        if (!Objects.equals(conjunto2.get(0), conjunto1.get(conjunto1.size() - 1))) retorno = true;
+        return retorno;
     }
 
     private String arrumaMsg(String msg) {
@@ -124,68 +204,10 @@ public class AnalisaGrafo {
         return Math.abs(numElementos);
     }
 
-    public String arestasDoGrafo(int[][] matrizAdjacencia) {
-        String msg = "\n";
-        ArrayList<String[]> conexoes = new ArrayList<>();
-        int somaArestas = 0;
-        int numArestas = 0;
-
-        // solucao p/ nao dirigidos e dirigidos (quantidade de arestas)
-        for (int i = 0; i < matrizAdjacencia.length; i++) {
-            for (int j = 0; j < matrizAdjacencia.length; j++) {
-                if (matrizAdjacencia[i][j] > 0) {
-                    //contando as arestas
-                    somaArestas += matrizAdjacencia[i][j];
-
-                    //conexoes
-                    i++;
-                    j++;
-                    String[] arestas = { i + ", " + j };
-                    conexoes.add(arestas);
-                    i--;
-                    j--;
-                }
-            }
-        }
-        if (!ehDirigido) numArestas = somaArestas / 2; else numArestas = somaArestas;
-
-        if (numArestas > 0) {
-            msg += "Numero de arestas existentes no grafo: " + numArestas;
-            msg += "\nConjunto de arestas: ";
-
-            for (String[] arestas : conexoes) {
-                msg += "{" + Arrays.toString(arestas) + "} , ";
-            }
-            msg = this.arrumaMsg(msg);
-        } else {
-            msg += "Este grafo nao possui arestas.";
-        }
-        return msg;
-    }
-
-    //p/ descobrir o grau -> conta aparicoes / 2 = grau
-    public String grausDoVertice(int[][] matrizAdjacencia) {
-        List<Integer> freqArestas = this.getFrequenciaArestas(matrizAdjacencia);
-        List<Integer> seqGraus = this.getSequenciaDeGraus(matrizAdjacencia);
-        String introducaoMsg = "\nListagem de graus de cada vertice:\n";
-        String grausMsg = "";
-
-        // graus de cada vertice
-        if (ehDirigido) {
-            // somaDeEntradas + somaDeSaidas
-
-        } else {
-            for (int k = 0; k < matrizAdjacencia.length + 1; k++) {
-                grausMsg += k + " -> " + Collections.frequency(freqArestas, k) + "\n";
-            }
-        }
-        return introducaoMsg + grausMsg.substring(7, grausMsg.length() - 1) + "\n\nSequencia de graus: " + seqGraus;
-    }
-
     private List<Integer> getFrequenciaArestas(int[][] matrizAdjacencia) {
         List<Integer> freqArestas = new ArrayList<>();
         for (int i = 0; i < matrizAdjacencia.length; i++) {
-            for (int j = 0; j < matrizAdjacencia.length; j++) {
+            for (int j = 0; j < matrizAdjacencia[0].length; j++) {
                 if (matrizAdjacencia[i][j] > 0) {
                     i++;
                     freqArestas.add(i);
@@ -196,7 +218,7 @@ public class AnalisaGrafo {
         return freqArestas;
     }
 
-    private List<Integer> getSequenciaDeGraus(int[][] matrizAdjacencia) {
+    private List<Integer> getSequenciaDeGrausNaoDirigido(int[][] matrizAdjacencia) {
         List<Integer> seqGraus = new ArrayList<>();
 
         for (int i = 0; i < matrizAdjacencia.length + 1; i++) {
@@ -207,11 +229,45 @@ public class AnalisaGrafo {
         return seqGraus;
     }
 
+    private int[] getSequenciaDeGrausDirigido(int[][] matrizAdjacencia) {
+        int[] somaEntradasSaidas = new int[matrizAdjacencia.length];
+        int[] somaDasEntradas = new int[matrizAdjacencia.length];
+        int[] somaDasSaidas = new int[matrizAdjacencia[0].length];
+
+        for (int i = 0; i < matrizAdjacencia.length; i++) {
+            int somaEntradas = 0;
+            for (int j = 0; j < matrizAdjacencia[0].length; j++) {
+                somaEntradas += matrizAdjacencia[i][j];
+                somaDasEntradas[i] = somaEntradas;
+            }
+        }
+
+        for (int i = 0; i < matrizAdjacencia.length; i++) {
+            int somaSaidas = 0;
+            for (int j = 0; j < matrizAdjacencia[0].length; j++) {
+                somaSaidas += matrizAdjacencia[j][i];
+                somaDasSaidas[i] = somaSaidas;
+            }
+        }
+        for (int i = 0; i < somaEntradasSaidas.length; i++) somaEntradasSaidas[i] = somaDasEntradas[i] + somaDasSaidas[i];
+        return somaEntradasSaidas;
+    }
+
+    private List<Integer> getSeqGrausDirigidoComoList(int[] somaEntradasSaidas) {
+        List<Integer> somaEntradasSaidasList = new ArrayList<>();
+        for (int i = 0; i < somaEntradasSaidas.length; i++) {
+            somaEntradasSaidasList.add(somaEntradasSaidas[i]);
+        }
+        return somaEntradasSaidasList;
+    }
+
     public static void main(String[] args) {
         AnalisaGrafo obj = new AnalisaGrafo();
         int[][] matrizAdjacencia = {
-                {0, 1},
-                {1, 0}
+                {1, 0, 1, 0},
+                {1, 1, 2, 0},
+                {0, 0, 0, 1},
+                {1, 0, 1, 1}
         };
 
         System.out.println(obj.tipoDoGrafo(matrizAdjacencia));
