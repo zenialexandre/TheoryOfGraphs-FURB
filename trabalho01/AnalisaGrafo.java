@@ -157,21 +157,23 @@ public class AnalisaGrafo {
 
     private boolean verifRegular(int[][] matrizAdjacencia) {
         int contFrequencia = 0;
+        boolean retorno = false;
 
         if (!ehDirigido) {
             for (int grau : this.getSequenciaDeGrausNaoDirigido(matrizAdjacencia)) {
                 contFrequencia = Collections.frequency(this.getSequenciaDeGrausNaoDirigido(matrizAdjacencia), grau);
             }
+            retorno = contFrequencia == this.getSequenciaDeGrausNaoDirigido(matrizAdjacencia).size();
         } else {
             for (int grau : this.getSequenciaDeGrausDirigido(matrizAdjacencia)) {
                 contFrequencia = Collections.frequency(this.getSeqGrausDirigidoComoList(this.getSequenciaDeGrausDirigido(matrizAdjacencia)), grau);
             }
+            retorno = contFrequencia == this.getSequenciaDeGrausDirigido(matrizAdjacencia).length;
         }
-        return contFrequencia == this.getSequenciaDeGrausNaoDirigido(matrizAdjacencia).size();
+        return retorno;
     }
 
     private boolean verifBipartido(int[][] matrizAdjacencia) {
-        boolean retorno = false;
         ArrayList<Integer> conjunto1 = new ArrayList<>();
         ArrayList<Integer> conjunto2 = new ArrayList<>();
 
@@ -185,8 +187,7 @@ public class AnalisaGrafo {
                 }
             }
         }
-        if (!Objects.equals(conjunto2.get(0), conjunto1.get(conjunto1.size() - 1))) retorno = true;
-        return retorno;
+        return (!Objects.equals(conjunto2.get(0), conjunto1.get(conjunto1.size() - 1)));
     }
 
     private String arrumaMsg(String msg) {
@@ -264,10 +265,10 @@ public class AnalisaGrafo {
     public static void main(String[] args) {
         AnalisaGrafo obj = new AnalisaGrafo();
         int[][] matrizAdjacencia = {
-                {1, 0, 1, 0},
-                {1, 1, 2, 0},
-                {0, 0, 0, 1},
-                {1, 0, 1, 1}
+                {0, 1, 1, 1},
+                {1, 0, 1, 1},
+                {1, 1, 0, 1},
+                {1, 1, 1, 0}
         };
 
         System.out.println(obj.tipoDoGrafo(matrizAdjacencia));
