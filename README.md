@@ -1,2 +1,2 @@
 # TheoryOfGraphs-FURB
-Repository to organize the implementations of my theory of graphs class.
+Repository to organize my Theory of Graphs classes.
