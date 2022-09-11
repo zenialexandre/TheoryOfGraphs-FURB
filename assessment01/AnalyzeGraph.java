@@ -166,51 +166,48 @@ public class AnalyzeGraph {
 
     private boolean checkRegular(int[][] adjacencyMatrix) {
         int frequencyCount = 0;
-        boolean dsReturn = false;
+        boolean boolReturn = false;
 
         if (!isDirected) {
             for (int degree : this.getDegreeSequenceNoDirected(adjacencyMatrix)) {
                 frequencyCount = Collections.frequency(this.getDegreeSequenceNoDirected(adjacencyMatrix), degree);
             }
-            dsReturn = frequencyCount == this.getDegreeSequenceNoDirected(adjacencyMatrix).size();
+            boolReturn = frequencyCount == this.getDegreeSequenceNoDirected(adjacencyMatrix).size();
         } else {
             for (int grau : this.getDegreeSequenceDirected(adjacencyMatrix)) {
                 frequencyCount = Collections.frequency(this.getDegreeSequenceDirectedAsList(this.getDegreeSequenceDirected(adjacencyMatrix)), grau);
             }
-            dsReturn = frequencyCount == this.getDegreeSequenceDirected(adjacencyMatrix).length;
+            boolReturn = frequencyCount == this.getDegreeSequenceDirected(adjacencyMatrix).length;
         }
-        return dsReturn;
+        return boolReturn;
     }
 
-    private boolean checkBipartite(int[][] matrizAdjacencia) {
-        ArrayList<Integer> conjunto1 = new ArrayList<>();
-        ArrayList<Integer> conjunto2 = new ArrayList<>();
+    private boolean checkBipartite(int[][] adjacencyMatrix) {
+        ArrayList<Integer> group1 = new ArrayList<>();
+        ArrayList<Integer> group2 = new ArrayList<>();
 
-        for (int i = 0; i < matrizAdjacencia.length; i++) {
-            if (matrizAdjacencia[i][i] == 0) {
-                for (int j = 0; j < matrizAdjacencia.length; j++) {
-                    if (conjunto1.isEmpty() || !this.teste(i, conjunto1, matrizAdjacencia)) {
-                        conjunto1.add(i);
-                    } else if (conjunto2.isEmpty() || !this.teste(i, conjunto2, matrizAdjacencia)) {
-                        conjunto2.add(i);
+        for (int i = 0; i < adjacencyMatrix.length; i++) {
+            if (!(adjacencyMatrix[i][i] > 0)) {
+                for (int j = 0; j < adjacencyMatrix.length; j++) {
+                    if (group1.isEmpty() || checkInvalidGroupInsert(i, group1, adjacencyMatrix)) {
+                        group1.add(i);
+                    } else if (group2.isEmpty() || checkInvalidGroupInsert(i, group2, adjacencyMatrix)) {
+                        group2.add(i);
                     } else {
                         return false;
                     }
                 }
+            } else {
+                return false;
             }
         }
-        System.out.println(conjunto1);
-        System.out.println(conjunto2);
         return true;
     }
 
-    private boolean teste(int i, ArrayList<Integer> conj, int[][] matrizAdjacencia) {
-        for (int j = 0; j < matrizAdjacencia.length; j++) {
-            if (matrizAdjacencia[i][j] != 0 && conj.contains(j)) {
-                return true;
-            }
-        }
-        return false;
+    private boolean checkInvalidGroupInsert(int i, ArrayList<Integer> group, int[][] adjacencyMatrix) {
+        for (int j = 0; j < adjacencyMatrix.length; j++)
+            if (adjacencyMatrix[i][j] > 0 && group.contains(j)) return false;
+        return true;
     }
 
     private String fixMessage(String msg) {
@@ -288,10 +285,8 @@ public class AnalyzeGraph {
     public static void main(String[] args) {
         AnalyzeGraph obj = new AnalyzeGraph();
         int[][] adjacencyMatrix = {
-                {0, 1, 1, 0},
-                {1, 0, 0, 1},
-                {1, 0, 0, 1},
-                {0, 1, 1, 0}
+                {0, 0},
+                {0, 0}
         };
 
         System.out.println(obj.tipoDoGrafo(adjacencyMatrix));
