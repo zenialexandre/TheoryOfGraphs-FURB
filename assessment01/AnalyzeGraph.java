@@ -42,22 +42,18 @@ public class AnalyzeGraph {
                             isComplete = true;
                         }
                     }
-
-                    // verificando regular
+                    
                     if (this.checkRegular(adjacencyMatrix)) isRegular = true;
                 }
             }
-            // verificando bipartido
             if ((!isMultigraph || isMultigraph && !hasLoop) && !isDirected && !this.checkNull(nullCount, elementsNumber)) {
                 if (this.checkBipartite(adjacencyMatrix)) isBipartite = true;
             }
 
-            // verificando completo
             if (!isMultigraph && !isDirected && !this.checkNull(nullCount, elementsNumber)) {
                 if (this.checkComplete(adjacencyMatrix)) isComplete = true;
             }
 
-            // montando a mensagem baseado nas afirmacoes
             if (this.checkNull(nullCount, elementsNumber)) msg += "Nulo - ";
             if (isMultigraph) msg += "Multigrafo - "; else if (!isMultigraph) msg += "Simples - ";
             if (isDirected) msg += "Dirigido - "; else msg += "Nao-Dirigido - ";
