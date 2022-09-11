@@ -11,131 +11,145 @@ public class AnalisaGrafo {
     private boolean ehDirigido = false;
 
     public String tipoDoGrafo(int[][] matrizAdjacencia) {
-        int numElementos = this.getNumeroElementos(matrizAdjacencia);
-        int contNulo = 0;
-        int somaDiagonalPrincipal = 0;
-        boolean ehMultigrafo = false;
-        boolean ehCompleto = false;
-        boolean ehRegular = false;
-        boolean temLoop = false;
-        boolean ehBipartido = false;
-        String msg = "O tipo do grafo inserido seria: ";
+        if (this.checkMatrizAdjacencia(matrizAdjacencia)) {
+            int numElementos = this.getNumeroElementos(matrizAdjacencia);
+            int contNulo = 0;
+            int somaDiagonalPrincipal = 0;
+            boolean ehMultigrafo = false;
+            boolean ehCompleto = false;
+            boolean ehRegular = false;
+            boolean temLoop = false;
+            boolean ehBipartido = false;
+            String msg = "O tipo do grafo inserido seria: ";
 
-
-        for (int i = 0; i < matrizAdjacencia.length; i++) {
-            for (int j = 0; j < matrizAdjacencia[0].length; j++) {
-                // verficando grafo nulo
-                if (matrizAdjacencia[i][j] == 0) {
-                    contNulo++;
-                }
-
-                // verificando grafo simples / multigrafo
-                if (matrizAdjacencia[i][j] > 1) {
-                    ehMultigrafo = true;
-                } else if (i == j) {
-                    somaDiagonalPrincipal += matrizAdjacencia[i][j];
-                    if (somaDiagonalPrincipal > 0) ehMultigrafo = true; temLoop = true;
-                }
-
-                // verificando dirigido / nao-dirigido
-                if (!this.verifSimetria(matrizAdjacencia, i, j)) ehDirigido = true;
-
-                // verificando completo / graus devem ser = numVertices - 1
-                if (!ehMultigrafo) {
-                    if (contNulo == 1 && this.verifNulo(contNulo, numElementos)) { // cobre o caso do K1, unico nulo completo
-                        ehCompleto = true;
+            for (int i = 0; i < matrizAdjacencia.length; i++) {
+                for (int j = 0; j < matrizAdjacencia[0].length; j++) {
+                    // verficando grafo nulo
+                    if (matrizAdjacencia[i][j] == 0) {
+                        contNulo++;
                     }
+
+                    // verificando grafo simples / multigrafo
+                    if (matrizAdjacencia[i][j] > 1) {
+                        ehMultigrafo = true;
+                    } else if (i == j) {
+                        somaDiagonalPrincipal += matrizAdjacencia[i][j];
+                        if (somaDiagonalPrincipal > 0) ehMultigrafo = true; temLoop = true;
+                    }
+
+                    // verificando dirigido / nao-dirigido
+                    if (!this.verifSimetria(matrizAdjacencia, i, j)) ehDirigido = true;
+
+                    // verificando completo / graus devem ser = numVertices - 1
+                    if (!ehMultigrafo) {
+                        if (contNulo == 1 && this.verifNulo(contNulo, numElementos)) { // cobre o caso do K1, unico nulo completo
+                            ehCompleto = true;
+                        }
+                    }
+
+                    // verificando regular
+                    if (this.verifRegular(matrizAdjacencia)) ehRegular = true;
                 }
-
-                // verificando regular
-                if (this.verifRegular(matrizAdjacencia)) ehRegular = true;
             }
-        }
-        // verificando bipartido
-        if ((!ehMultigrafo || ehMultigrafo && !temLoop) && !ehDirigido && !this.verifNulo(contNulo, numElementos)) {
-            if (this.verifBipartido(matrizAdjacencia)) ehBipartido = true;
-        }
+            // verificando bipartido
+            if ((!ehMultigrafo || ehMultigrafo && !temLoop) && !ehDirigido && !this.verifNulo(contNulo, numElementos)) {
+                if (this.verifBipartido(matrizAdjacencia)) ehBipartido = true;
+            }
 
-        // verificando completo
-        if (!ehMultigrafo && !ehDirigido && !this.verifNulo(contNulo, numElementos)) {
-            if (this.verifCompleto(matrizAdjacencia)) ehCompleto = true;
+            // verificando completo
+            if (!ehMultigrafo && !ehDirigido && !this.verifNulo(contNulo, numElementos)) {
+                if (this.verifCompleto(matrizAdjacencia)) ehCompleto = true;
+            }
+
+            // montando a mensagem baseado nas afirmacoes
+            if (this.verifNulo(contNulo, numElementos)) msg += "Nulo - ";
+            if (ehMultigrafo) msg += "Multigrafo - "; else if (!ehMultigrafo) msg += "Simples - ";
+            if (ehDirigido) msg += "Dirigido - "; else msg += "Nao-Dirigido - ";
+            if (ehCompleto) msg += "Completo - ";
+            if (ehBipartido) msg += "Bipartido - ";
+            if (ehRegular) msg += "Regular - ";
+            return this.arrumaMsg(msg);
+        } else {
+            return "Matriz inserida invalida para analise. Nao deve ser nula em elementos e tamanho deve ser N x N.";
         }
-
-        // montando a mensagem baseado nas afirmacoes
-        if (this.verifNulo(contNulo, numElementos)) msg += "Nulo - ";
-        if (ehMultigrafo) msg += "Multigrafo - "; else if (!ehMultigrafo) msg += "Simples - ";
-        if (ehDirigido) msg += "Dirigido - "; else msg += "Nao-Dirigido - ";
-        if (ehCompleto) msg += "Completo - ";
-        if (ehBipartido) msg += "Bipartido - ";
-        if (ehRegular) msg += "Regular - ";
-
-        return this.arrumaMsg(msg);
     }
 
     public String arestasDoGrafo(int[][] matrizAdjacencia) {
-        String msg = "\n";
-        ArrayList<String[]> conexoes = new ArrayList<>();
-        int somaArestas = 0;
-        int numArestas = 0;
+        if (this.checkMatrizAdjacencia(matrizAdjacencia)) {
+            String msg = "\n";
+            ArrayList<String[]> conexoes = new ArrayList<>();
+            int somaArestas = 0;
+            int numArestas = 0;
 
-        for (int i = 0; i < matrizAdjacencia.length; i++) {
-            for (int j = 0; j < matrizAdjacencia[0].length; j++) {
-                if (matrizAdjacencia[i][j] > 0) {
-                    //contando as arestas
-                    somaArestas += matrizAdjacencia[i][j];
+            for (int i = 0; i < matrizAdjacencia.length; i++) {
+                for (int j = 0; j < matrizAdjacencia[0].length; j++) {
+                    if (matrizAdjacencia[i][j] > 0) {
+                        //contando as arestas
+                        somaArestas += matrizAdjacencia[i][j];
 
-                    //conexoes
-                    i++;
-                    j++;
-                    String[] arestas = { "v" + i + ", v" + j };
-                    conexoes.add(arestas);
-                    i--;
-                    j--;
+                        //conexoes
+                        i++;
+                        j++;
+                        String[] arestas = { "v" + i + ", v" + j };
+                        conexoes.add(arestas);
+                        i--;
+                        j--;
+                    }
                 }
             }
-        }
 
-        if (!ehDirigido) numArestas = somaArestas / 2; else numArestas = somaArestas;
-        if (numArestas > 0) {
-            msg += "Numero de arestas existentes no grafo: " + numArestas;
-            msg += "\nConjunto de arestas: ";
+            if (!ehDirigido) numArestas = somaArestas / 2; else numArestas = somaArestas;
+            if (numArestas > 0) {
+                msg += "Numero de arestas existentes no grafo: " + numArestas;
+                msg += "\nConjunto de arestas: ";
 
-            for (String[] arestas : conexoes) {
-                msg += "{" + Arrays.toString(arestas) + "} , ";
+                for (String[] arestas : conexoes) {
+                    msg += "{" + Arrays.toString(arestas) + "} , ";
+                }
+                msg = this.arrumaMsg(msg);
+            } else {
+                msg += "Este grafo nao possui arestas.";
             }
-            msg = this.arrumaMsg(msg);
+            return msg;
         } else {
-            msg += "Este grafo nao possui arestas.";
+            return "";
         }
-        return msg;
     }
 
     public String grausDoVertice(int[][] matrizAdjacencia) {
-        List<Integer> freqArestas = this.getFrequenciaArestas(matrizAdjacencia);
-        List<Integer> seqGraus = this.getSequenciaDeGrausNaoDirigido(matrizAdjacencia);
-        String msg = "\nListagem de graus de cada vertice:\n";
-        String grausMsg = "";
+        if (this.checkMatrizAdjacencia(matrizAdjacencia)) {
+            List<Integer> freqArestas = this.getFrequenciaArestas(matrizAdjacencia);
+            List<Integer> seqGraus = this.getSequenciaDeGrausNaoDirigido(matrizAdjacencia);
+            String msg = "\nListagem de graus de cada vertice:\n";
+            String grausMsg = "";
 
-        if (ehDirigido) { // entradas = linhas / saidas = colunas
-            List<Integer> seqGrausDirigido = new ArrayList<>();
-            int[] somaEntradasSaidas = this.getSequenciaDeGrausDirigido(matrizAdjacencia);
-            for (int k = 0; k < somaEntradasSaidas.length; k++) {
-                k++;
-                grausMsg += "v" + k + " -> ";
-                k--;
-                grausMsg += somaEntradasSaidas[k] + "\n";
-                seqGrausDirigido.add(somaEntradasSaidas[k]);
+            if (ehDirigido) { // entradas = linhas / saidas = colunas
+                List<Integer> seqGrausDirigido = new ArrayList<>();
+                int[] somaEntradasSaidas = this.getSequenciaDeGrausDirigido(matrizAdjacencia);
+                for (int k = 0; k < somaEntradasSaidas.length; k++) {
+                    k++;
+                    grausMsg += "v" + k + " -> ";
+                    k--;
+                    grausMsg += somaEntradasSaidas[k] + "\n";
+                    seqGrausDirigido.add(somaEntradasSaidas[k]);
+                }
+                Collections.sort(seqGrausDirigido);
+                msg += grausMsg + "\nSequencia de graus: " + seqGrausDirigido;
+
+            } else {
+                for (int k = 0; k < matrizAdjacencia.length + 1; k++) {
+                    grausMsg += "v" + k + " -> " + Collections.frequency(freqArestas, k) + "\n";
+                }
+                msg += grausMsg.substring(7, grausMsg.length() - 1) + "\n\nSequencia de graus: " + seqGraus;
             }
-            Collections.sort(seqGrausDirigido);
-            msg += grausMsg + "\nSequencia de graus: " + seqGrausDirigido;
-
+            return msg;
         } else {
-            for (int k = 0; k < matrizAdjacencia.length + 1; k++) {
-                grausMsg += "v" + k + " -> " + Collections.frequency(freqArestas, k) + "\n";
-            }
-            msg += grausMsg.substring(7, grausMsg.length() - 1) + "\n\nSequencia de graus: " + seqGraus;
+            return "";
         }
-        return msg;
+    }
+
+    private boolean checkMatrizAdjacencia(int[][] matrizAdjacencia) {
+        return matrizAdjacencia != null && matrizAdjacencia.length == matrizAdjacencia[0].length;
     }
 
     private boolean verifSimetria(int[][] matrizAdjacencia, int i, int j) {
@@ -267,8 +281,8 @@ public class AnalisaGrafo {
         AnalisaGrafo obj = new AnalisaGrafo();
         int[][] matrizAdjacencia = {
                 {0, 1, 1, 0},
-                {1, 0, 1, 1},
-                {1, 1, 0, 1},
+                {1, 0, 0, 1},
+                {1, 0, 0, 1},
                 {0, 1, 1, 0}
         };
 
