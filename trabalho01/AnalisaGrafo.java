@@ -148,11 +148,12 @@ public class AnalisaGrafo {
 
     private boolean verifCompleto(int[][] matrizAdjacencia) {
         int vertices = matrizAdjacencia[0].length;
+        ArrayList<Integer> grausCompl = new ArrayList<>();
 
         for (int grau : this.getSequenciaDeGrausNaoDirigido(matrizAdjacencia)) { // verificando se cada grau da sequencia eh igual a numVertices - 1
-            if (grau == vertices - 1) return true;
+            if (grau == vertices - 1) grausCompl.add(grau);
         }
-        return false;
+        return grausCompl.size() == this.getSequenciaDeGrausNaoDirigido(matrizAdjacencia).size();
     }
 
     private boolean verifRegular(int[][] matrizAdjacencia) {
@@ -265,10 +266,10 @@ public class AnalisaGrafo {
     public static void main(String[] args) {
         AnalisaGrafo obj = new AnalisaGrafo();
         int[][] matrizAdjacencia = {
-                {0, 1, 1, 1},
+                {0, 1, 1, 0},
                 {1, 0, 1, 1},
                 {1, 1, 0, 1},
-                {1, 1, 1, 0}
+                {0, 1, 1, 0}
         };
 
         System.out.println(obj.tipoDoGrafo(matrizAdjacencia));
