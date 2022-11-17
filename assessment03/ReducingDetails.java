@@ -5,7 +5,6 @@
 package assessment03;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Scanner;
 
 public class ReducingDetails {
@@ -15,13 +14,38 @@ public class ReducingDetails {
     private int uVertice;
     private int vVertice;
     private int cCost;
-    private ArrayList<ArrayList<Integer>> graphInfos;
-    private ArrayList<Integer> originVertices;
-    private ArrayList<ArrayList<Integer>> sortedEdges;
+    private int minimumCost;
+    private int uniqueId = 0;
+    private int uniqueIdGenerated = 300;
+    private final ArrayList<ArrayList<Integer>> graphInfos = new ArrayList<>();
+    private final ArrayList<Edge> edges = new ArrayList<>();
+    private final ArrayList<DisjointSet> sets = new ArrayList<>();
     private final Scanner scanner = new Scanner(System.in);
+
+    public static class Edge {
+        public int origin;
+        public int destiny;
+        public int cost;
+
+        public Edge(int origin, int destiny, int cost) {
+            this.origin = origin;
+            this.destiny = destiny;
+            this.cost = cost;
+        }
+    }
+
+    public static class DisjointSet {
+        public int uniqueId;
+        public ArrayList<Integer> vertices = new ArrayList<>();
+        public DisjointSet(int uniqueId, int vertice) {
+            this.uniqueId = uniqueId;
+            this.vertices.add(vertice);
+        }
+    }
 
     public void build() {
         this.requestInput();
+        this.createEdgesList();
         this.execKruskalAlgo();
     }
 
@@ -32,36 +56,75 @@ public class ReducingDetails {
     }
 
     private void execKruskalAlgo() {
-        int minimumCost = 0;
-
-        for (int i = 0; i < nVertices; i++) {
+        for (int i = 1; i <= nVertices; i++) {
             this.makeSet(i);
         }
-        System.out.println(originVertices.toString());
         this.sortEdgesByCost();
-
-        System.out.println("Custo minimo: " + minimumCost);
+        this.iterateEdges();
+        System.out.println("Custo minimo: " + this.minimumCost);
     }
 
-    private void makeSet(int originVertice) {
-        originVertices = new ArrayList<>();
-        originVertices.add(originVertice);
+    private void createEdgesList() {
+        for (ArrayList<Integer> list : graphInfos) {
+            Edge genericEdge = new Edge(list.get(0), list.get(1), list.get(2));
+            edges.add(genericEdge);
+        }
     }
 
-    private void findSet() {
-
+    private void makeSet(int vertice) {
+        DisjointSet set = new DisjointSet(uniqueId++, vertice);
+        sets.add(set);
     }
 
-    private void union() {
+    private int findSet(int vertice) {
+        for (DisjointSet set : sets) {
+            for (int innerVertice : set.vertices) {
+                if (vertice == innerVertice) {
+                    return set.uniqueId;
+                }
+            }
+        }
+        return -1;
+    }
 
+    private void union(int origin, int destiny) {
+        uniqueIdGenerated++;
+
+        for (int i = 0; i < sets.size(); i++) {
+            if (sets.get(i).uniqueId == this.findSet(origin)) {
+               DisjointSet newSet = new DisjointSet(uniqueId + uniqueIdGenerated, origin);
+
+                for (int j = 0; j < sets.size(); j++) {
+                    if (sets.get(j).uniqueId == this.findSet(destiny)) {
+                        newSet.vertices.addAll(sets.get(j).vertices);
+                        sets.remove(sets.get(j));
+                    }
+                }
+                sets.add(newSet);
+                sets.remove(sets.get(i));
+            }
+        }
     }
 
     private void sortEdgesByCost() {
-
+        for (int i = 0; i < edges.size(); i++) {
+            for (int j = 0; j < edges.size(); j++) {
+                if (edges.get(i).cost < edges.get(j).cost) {
+                    Edge temp = edges.get(i);
+                    edges.set(i, edges.get(j));
+                    edges.set(j, temp);
+                }
+            }
+        }
     }
 
-    private void addEdge(ArrayList<Integer> info) {
-        sortedEdges.add(info);
+    private void iterateEdges() {
+        for (Edge edge : edges) {
+            if (this.findSet(edge.origin) != this.findSet(edge.destiny)) {
+                this.minimumCost += edge.cost;
+                this.union(edge.origin, edge.destiny);
+            }
+        }
     }
 
     private void verticesAndEdges() {
@@ -93,8 +156,6 @@ public class ReducingDetails {
     }
 
     private void graphInfo() {
-        graphInfos = new ArrayList<>();
-
         for (int i = 0; i < mEdges; i++) {
             ArrayList<Integer> internalList = new ArrayList<>();
             this.clearValues();
