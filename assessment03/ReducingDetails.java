@@ -5,6 +5,7 @@
 package assessment03;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.Scanner;
 
 public class ReducingDetails {
@@ -17,30 +18,46 @@ public class ReducingDetails {
     private int minimumCost;
     private int uniqueId = 0;
     private int uniqueIdGenerated = 300;
+    private final ArrayList<Integer> computedVertices = new ArrayList<>();
     private final ArrayList<ArrayList<Integer>> graphInfos = new ArrayList<>();
     private final ArrayList<Edge> edges = new ArrayList<>();
     private final ArrayList<DisjointSet> sets = new ArrayList<>();
     private final Scanner scanner = new Scanner(System.in);
 
     public static class Edge {
-        public int origin;
-        public int destiny;
-        public int cost;
+        private int origin;
+        private int destiny;
+        private int cost;
 
         public Edge(int origin, int destiny, int cost) {
-            this.origin = origin;
-            this.destiny = destiny;
-            this.cost = cost;
+            this.setOrigin(origin);
+            this.setDestiny(destiny);
+            this.setCost(cost);
         }
+
+        private void setOrigin(int origin) { this.origin = origin; }
+        private void setDestiny(int destiny) { this.destiny = destiny; }
+        private void setCost(int cost) { this.cost = cost; }
+
+        public int getOrigin() { return this.origin; }
+        public int getDestiny() { return this.destiny; }
+        public int getCost() { return this.cost; }
     }
 
     public static class DisjointSet {
         public int uniqueId;
-        public ArrayList<Integer> vertices = new ArrayList<>();
+        public LinkedHashSet<Integer> vertices = new LinkedHashSet<>();
+
         public DisjointSet(int uniqueId, int vertice) {
-            this.uniqueId = uniqueId;
-            this.vertices.add(vertice);
+            this.setUniqueId(uniqueId);
+            this.addVertice(vertice);
         }
+
+        private void setUniqueId(int uniqueId) { this.uniqueId = uniqueId; }
+        private void addVertice(int vertice) { this.vertices.add(vertice); }
+
+        public int getUniqueId() { return this.uniqueId; }
+        public LinkedHashSet<Integer> getVertices() { return this.vertices; }
     }
 
     public void build() {
@@ -55,15 +72,6 @@ public class ReducingDetails {
         scanner.close();
     }
 
-    private void execKruskalAlgo() {
-        for (int i = 1; i <= nVertices; i++) {
-            this.makeSet(i);
-        }
-        this.sortEdgesByCost();
-        this.iterateEdges();
-        System.out.println("Custo minimo: " + this.minimumCost);
-    }
-
     private void createEdgesList() {
         for (ArrayList<Integer> list : graphInfos) {
             Edge genericEdge = new Edge(list.get(0), list.get(1), list.get(2));
@@ -71,45 +79,25 @@ public class ReducingDetails {
         }
     }
 
+    private void execKruskalAlgo() {
+        for (int i = 1; i <= nVertices; i++) {
+            this.makeSet(i);
+        }
+        this.sortEdgesByCost();
+        this.iterateEdges();
+        //if (sets.size() > 1) throw new IllegalArgumentException("Grafo nao eh conexo.");
+        System.out.println("Custo minimo: " + this.minimumCost);
+    }
+
     private void makeSet(int vertice) {
         DisjointSet set = new DisjointSet(uniqueId++, vertice);
         sets.add(set);
     }
 
-    private int findSet(int vertice) {
-        for (DisjointSet set : sets) {
-            for (int innerVertice : set.vertices) {
-                if (vertice == innerVertice) {
-                    return set.uniqueId;
-                }
-            }
-        }
-        return -1;
-    }
-
-    private void union(int origin, int destiny) {
-        uniqueIdGenerated++;
-
-        for (int i = 0; i < sets.size(); i++) {
-            if (sets.get(i).uniqueId == this.findSet(origin)) {
-               DisjointSet newSet = new DisjointSet(uniqueId + uniqueIdGenerated, origin);
-
-                for (int j = 0; j < sets.size(); j++) {
-                    if (sets.get(j).uniqueId == this.findSet(destiny)) {
-                        newSet.vertices.addAll(sets.get(j).vertices);
-                        sets.remove(sets.get(j));
-                    }
-                }
-                sets.add(newSet);
-                sets.remove(sets.get(i));
-            }
-        }
-    }
-
     private void sortEdgesByCost() {
         for (int i = 0; i < edges.size(); i++) {
             for (int j = 0; j < edges.size(); j++) {
-                if (edges.get(i).cost < edges.get(j).cost) {
+                if (edges.get(i).getCost() < edges.get(j).getCost()) {
                     Edge temp = edges.get(i);
                     edges.set(i, edges.get(j));
                     edges.set(j, temp);
@@ -120,11 +108,50 @@ public class ReducingDetails {
 
     private void iterateEdges() {
         for (Edge edge : edges) {
-            if (this.findSet(edge.origin) != this.findSet(edge.destiny)) {
-                this.minimumCost += edge.cost;
-                this.union(edge.origin, edge.destiny);
+            if (this.findSet(edge.getOrigin()) != this.findSet(edge.getDestiny()) && this.checkComputedVertices(edge.getOrigin(), edge.getDestiny())) {
+                this.minimumCost += edge.getCost();
+                this.union(edge.getOrigin(), edge.getDestiny());
+                this.computedVertices.add(edge.getOrigin());
+                this.computedVertices.add(edge.getDestiny());
             }
         }
+    }
+
+    private int findSet(int vertice) {
+        for (DisjointSet set : sets) {
+            for (int innerVertice : set.getVertices()) {
+                if (vertice == innerVertice) {
+                    return set.getUniqueId();
+                }
+            }
+        }
+        return -1;
+    }
+
+    private void union(int origin, int destiny) {
+        uniqueIdGenerated++;
+
+        for (int i = 0; i < sets.size(); i++) {
+            if (sets.get(i).getUniqueId() == this.findSet(origin)) {
+                DisjointSet newSet = new DisjointSet(uniqueId + uniqueIdGenerated, origin);
+                newSet.getVertices().addAll(sets.get(i).getVertices());
+
+                for (int j = 0; j < sets.size(); j++) {
+                    if (sets.get(j).getUniqueId() == this.findSet(destiny)) {
+                        newSet.getVertices().addAll(sets.get(j).getVertices());
+                        sets.remove(sets.get(j));
+                        break;
+                    }
+                }
+                sets.add(newSet);
+                sets.remove(sets.get(i));
+                break;
+            }
+        }
+    }
+
+    private boolean checkComputedVertices(int origin, int destiny) {
+        return (!this.computedVertices.contains(destiny)) || this.computedVertices.contains(destiny) && !this.computedVertices.contains(origin);
     }
 
     private void verticesAndEdges() {
