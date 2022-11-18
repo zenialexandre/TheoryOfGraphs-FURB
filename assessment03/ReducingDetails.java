@@ -45,8 +45,8 @@ public class ReducingDetails {
     }
 
     public static class DisjointSet {
-        public int uniqueId;
-        public LinkedHashSet<Integer> vertices = new LinkedHashSet<>();
+        private int uniqueId;
+        private final LinkedHashSet<Integer> vertices = new LinkedHashSet<>();
 
         public DisjointSet(int uniqueId, int vertice) {
             this.setUniqueId(uniqueId);
@@ -85,7 +85,6 @@ public class ReducingDetails {
         }
         this.sortEdgesByCost();
         this.iterateEdges();
-        //if (sets.size() > 1) throw new IllegalArgumentException("Grafo nao eh conexo.");
         System.out.println("Custo minimo: " + this.minimumCost);
     }
 
