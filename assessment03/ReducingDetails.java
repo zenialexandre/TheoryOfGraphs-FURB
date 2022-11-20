@@ -215,8 +215,8 @@ public class ReducingDetails {
     }
 
     private void validateDestinyInput(ArrayList<Integer> internalList) {
-        if (!(vVertice <= nVertices && vVertice != uVertice)) {
-            while (vVertice > nVertices || vVertice == uVertice) {
+        if (!(vVertice >= 1 && vVertice <= nVertices && vVertice != uVertice)) {
+            while (vVertice < 1 || vVertice > nVertices || vVertice == uVertice) {
                 System.out.println("Insira um vertice de destino valido (V <= N, V != U): ");
                 vVertice = scanner.nextInt();
             }
